@@ -5,6 +5,8 @@
 extern crate libc;
 use libc::{uint32_t, uint64_t, size_t};
 
+use std::mem;
+
 //
 // hv_error.h
 //
@@ -12,49 +14,31 @@ use libc::{uint32_t, uint64_t, size_t};
 pub type kern_return_t = ::std::os::raw::c_int;
 pub type mach_error_t = kern_return_t;
 pub type mach_error_fn_t = ::std::option::Option<extern "C" fn() -> mach_error_t>;
-#[derive(Copy, Clone)]
-#[repr(i32)]
-#[derive(Debug)]
-pub enum hv_return {
-    HV_SUCCESS = 0,
-    HV_ERROR = -85377023,
-    HV_BUSY = -85377022,
-    HV_BAD_ARGUMENT = -85377021,
-    HV_NO_RESOURCES = -85377019,
-    HV_NO_DEVICE = -85377018,
-    HV_UNSUPPORTED = -85377009,
-}
 pub type hv_return_t = mach_error_t;
+
+pub const HV_SUCCESS: hv_return_t = 0;
+pub const HV_ERROR: hv_return_t = -85377023;
+pub const HV_BUSY: hv_return_t = -85377022;
+pub const HV_BAD_ARGUMENT: hv_return_t = -85377021;
+pub const HV_NO_RESOURCES: hv_return_t = -85377019;
+pub const HV_NO_DEVICE: hv_return_t = -85377018;
+pub const HV_UNSUPPORTED: hv_return_t = -85377009;
 
 //
 // hy_types.h
 //
 
-#[derive(Copy, Clone)]
-#[repr(u64)]
-#[derive(Debug)]
-pub enum hv_vm_options { 
-    HV_VM_DEFAULT = 0, 
-}
 pub type hv_vm_options_t = uint64_t;
+pub const HV_VM_DEFAULT: hv_vm_options_t = 0;
 
-#[derive(Copy, Clone)]
-#[repr(u64)]
-#[derive(Debug)]
-pub enum hv_vcpu_options { 
-    HV_VCPU_DEFAULT = 0, 
-}
 pub type hv_vcpu_options_t = uint64_t;
+pub const HV_VCPU_DEFAULT: hv_vcpu_options_t = 0; 
 
-#[derive(Copy, Clone)]
-#[repr(u64)]
-#[derive(Debug)]
-pub enum hv_memory_flags {
-    HV_MEMORY_READ  = (1 << 0),
-    HV_MEMORY_WRITE = (1 << 1),
-    HV_MEMORY_EXEC  = (1 << 2)
-}
 pub type hv_memory_flags_t = uint64_t;
+pub const HV_MEMORY_READ: hv_memory_flags_t = (1 << 0);
+pub const HV_MEMORY_WRITE: hv_memory_flags_t = (1 << 1);
+pub const HV_MEMORY_EXEC: hv_memory_flags_t = (1 << 2);
+
 pub type hv_vcpuid_t = ::std::os::raw::c_uint;
 pub type hv_uvaddr_t = *const ::std::os::raw::c_void;
 pub type hv_gpaddr_t = uint64_t;
@@ -281,104 +265,86 @@ pub enum hv_vmx_vmcs_regs {
     VMCS_HOST_RIP                       = 0x00006c16,
     VMCS_MAX                            = 0x00006c18
 }
-#[derive(Copy, Clone)]
-#[repr(u64)]
-#[derive(Debug)]
-pub enum hv_vmx_msrs { 
-    VMX_BASIC_TRUE_CTLS = (1 << 55), 
-}
-#[derive(Copy, Clone)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum hv_vmx_ctrls_pin_based {
-    PIN_BASED_INTR                      = (1 << 0),
-    PIN_BASED_NMI                       = (1 << 3),
-    PIN_BASED_VIRTUAL_NMI               = (1 << 5),
-    PIN_BASED_PREEMPTION_TIMER          = (1 << 6),
-    PIN_BASED_POSTED_INTR               = (1 << 7),
-}
-#[derive(Copy, Clone)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum hv_vmx_ctrls_cpu_based {
-    CPU_BASED_IRQ_WND                   = (1 << 2),
-    CPU_BASED_TSC_OFFSET                = (1 << 3),
-    CPU_BASED_HLT                       = (1 << 7),
-    CPU_BASED_INVLPG                    = (1 << 9),
-    CPU_BASED_MWAIT                     = (1 << 10),
-    CPU_BASED_RDPMC                     = (1 << 11),
-    CPU_BASED_RDTSC                     = (1 << 12),
-    CPU_BASED_CR3_LOAD                  = (1 << 15),
-    CPU_BASED_CR3_STORE                 = (1 << 16),
-    CPU_BASED_CR8_LOAD                  = (1 << 19),
-    CPU_BASED_CR8_STORE                 = (1 << 20),
-    CPU_BASED_TPR_SHADOW                = (1 << 21),
-    CPU_BASED_VIRTUAL_NMI_WND           = (1 << 22),
-    CPU_BASED_MOV_DR                    = (1 << 23),
-    CPU_BASED_UNCOND_IO                 = (1 << 24),
-    CPU_BASED_IO_BITMAPS                = (1 << 25),
-    CPU_BASED_MTF                       = (1 << 27),
-    CPU_BASED_MSR_BITMAPS               = (1 << 28),
-    CPU_BASED_MONITOR                   = (1 << 29),
-    CPU_BASED_PAUSE                     = (1 << 30),
-    CPU_BASED_SECONDARY_CTLS            = (1 << 31),
-}
-#[derive(Copy, Clone)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum hv_vmx_ctrls_cpu_based2 {
-    CPU_BASED2_VIRTUAL_APIC             = (1 << 0),
-    CPU_BASED2_EPT                      = (1 << 1),
-    CPU_BASED2_DESC_TABLE               = (1 << 2),
-    CPU_BASED2_RDTSCP                   = (1 << 3),
-    CPU_BASED2_X2APIC                   = (1 << 4),
-    CPU_BASED2_VPID                     = (1 << 5),
-    CPU_BASED2_WBINVD                   = (1 << 6),
-    CPU_BASED2_UNRESTRICTED             = (1 << 7),
-    CPU_BASED2_APIC_REG_VIRT            = (1 << 8),
-    CPU_BASED2_VIRT_INTR_DELIVERY       = (1 << 9),
-    CPU_BASED2_PAUSE_LOOP               = (1 << 10),
-    CPU_BASED2_RDRAND                   = (1 << 11),
-    CPU_BASED2_INVPCID                  = (1 << 12),
-    CPU_BASED2_VMFUNC                   = (1 << 13),
-    CPU_BASED2_VMCS_SHADOW              = (1 << 14),
-    CPU_BASED2_RDSEED                   = (1 << 16),
-    CPU_BASED2_EPT_VE                   = (1 << 18),
-    CPU_BASED2_XSAVES_XRSTORS           = (1 << 20),
-}
-#[derive(Copy, Clone)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum hv_vmx_ept_flags {
-    VMX_EPT_VPID_SUPPORT_AD             = (1 << 21),
-    VMX_EPT_VPID_SUPPORT_EXONLY         = (1 << 0),
-}
-#[derive(Copy, Clone)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum hv_vmx_ctrls_vmexit {
-    VMEXIT_SAVE_DBG_CONTROLS            = (1 << 2),
-    VMEXIT_HOST_IA32E                   = (1 << 9),
-    VMEXIT_LOAD_IA32_PERF_GLOBAL_CTRL   = (1 << 12),
-    VMEXIT_ACK_INTR                     = (1 << 15),
-    VMEXIT_SAVE_IA32_PAT                = (1 << 18),
-    VMEXIT_LOAD_IA32_PAT                = (1 << 19),
-    VMEXIT_SAVE_EFER                    = (1 << 20),
-    VMEXIT_LOAD_EFER                    = (1 << 21),
-    VMEXIT_SAVE_VMX_TIMER               = (1 << 22),
-}
-#[derive(Copy, Clone)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum hv_vmx_ctrls_vmentry {
-    VMENTRY_LOAD_DBG_CONTROLS           = (1 << 2),
-    VMENTRY_GUEST_IA32E                 = (1 << 9),
-    VMENTRY_SMM                         = (1 << 10),
-    VMENTRY_DEACTIVATE_DUAL_MONITOR     = (1 << 11),
-    VMENTRY_LOAD_IA32_PERF_GLOBAL_CTRL  = (1 << 13),
-    VMENTRY_LOAD_IA32_PAT               = (1 << 14),
-    VMENTRY_LOAD_EFER                   = (1 << 15)
-}
+
+pub const VMX_BASIC_TRUE_CTLS: u64          = (1 << 55);
+
+pub const PIN_BASED_INTR: u32               = (1 << 0);
+pub const PIN_BASED_NMI: u32                = (1 << 3);
+pub const PIN_BASED_VIRTUAL_NMI: u32        = (1 << 5);
+pub const PIN_BASED_PREEMPTION_TIMER: u32   = (1 << 6);
+pub const PIN_BASED_POSTED_INTR: u32        = (1 << 7);
+
+pub const CPU_BASED_IRQ_WND: u32            = (1 << 2);
+pub const CPU_BASED_TSC_OFFSET: u32         = (1 << 3);
+pub const CPU_BASED_HLT: u32                = (1 << 7);
+pub const CPU_BASED_INVLPG: u32             = (1 << 9);
+pub const CPU_BASED_MWAIT: u32              = (1 << 10);
+pub const CPU_BASED_RDPMC: u32              = (1 << 11);
+pub const CPU_BASED_RDTSC: u32              = (1 << 12);
+pub const CPU_BASED_CR3_LOAD: u32           = (1 << 15);
+pub const CPU_BASED_CR3_STORE: u32          = (1 << 16);
+pub const CPU_BASED_CR8_LOAD: u32           = (1 << 19);
+pub const CPU_BASED_CR8_STORE: u32          = (1 << 20);
+pub const CPU_BASED_TPR_SHADOW: u32         = (1 << 21);
+pub const CPU_BASED_VIRTUAL_NMI_WND: u32    = (1 << 22);
+pub const CPU_BASED_MOV_DR: u32             = (1 << 23);
+pub const CPU_BASED_UNCOND_IO: u32          = (1 << 24);
+pub const CPU_BASED_IO_BITMAPS: u32         = (1 << 25);
+pub const CPU_BASED_MTF: u32                = (1 << 27);
+pub const CPU_BASED_MSR_BITMAPS: u32        = (1 << 28);
+pub const CPU_BASED_MONITOR: u32            = (1 << 29);
+pub const CPU_BASED_PAUSE: u32              = (1 << 30);
+pub const CPU_BASED_SECONDARY_CTLS: u32     = (1 << 31);
+
+pub const CPU_BASED2_VIRTUAL_APIC: u32      = (1 << 0);
+pub const CPU_BASED2_EPT: u32               = (1 << 1);
+pub const CPU_BASED2_DESC_TABLE: u32        = (1 << 2);
+pub const CPU_BASED2_RDTSCP: u32            = (1 << 3);
+pub const CPU_BASED2_X2APIC: u32            = (1 << 4);
+pub const CPU_BASED2_VPID: u32              = (1 << 5);
+pub const CPU_BASED2_WBINVD: u32            = (1 << 6);
+pub const CPU_BASED2_UNRESTRICTED: u32      = (1 << 7);
+pub const CPU_BASED2_APIC_REG_VIRT: u32     = (1 << 8);
+pub const CPU_BASED2_VIRT_INTR_DELIVERY: u32= (1 << 9);
+pub const CPU_BASED2_PAUSE_LOOP: u32        = (1 << 10);
+pub const CPU_BASED2_RDRAND: u32            = (1 << 11);
+pub const CPU_BASED2_INVPCID: u32           = (1 << 12);
+pub const CPU_BASED2_VMFUNC: u32            = (1 << 13);
+pub const CPU_BASED2_VMCS_SHADOW: u32       = (1 << 14);
+pub const CPU_BASED2_RDSEED: u32            = (1 << 16);
+pub const CPU_BASED2_EPT_VE: u32            = (1 << 18);
+pub const CPU_BASED2_XSAVES_XRSTORS: u32    = (1 << 20);
+
+pub const VMX_EPT_VPID_SUPPORT_AD: u32      = (1 << 21);
+pub const VMX_EPT_VPID_SUPPORT_EXONLY: u32  = (1 << 0);
+
+pub const VMEXIT_SAVE_DBG_CONTROLS: u32            = (1 << 2);
+pub const VMEXIT_HOST_IA32E: u32                   = (1 << 9);
+pub const VMEXIT_LOAD_IA32_PERF_GLOBAL_CTRL: u32   = (1 << 12);
+pub const VMEXIT_ACK_INTR: u32                     = (1 << 15);
+pub const VMEXIT_SAVE_IA32_PAT: u32                = (1 << 18);
+pub const VMEXIT_LOAD_IA32_PAT: u32                = (1 << 19);
+pub const VMEXIT_SAVE_EFER: u32                    = (1 << 20);
+pub const VMEXIT_LOAD_EFER: u32                    = (1 << 21);
+pub const VMEXIT_SAVE_VMX_TIMER: u32               = (1 << 22);
+
+pub const VMENTRY_LOAD_DBG_CONTROLS: u32           = (1 << 2);
+pub const VMENTRY_GUEST_IA32E: u32                 = (1 << 9);
+pub const VMENTRY_SMM: u32                         = (1 << 10);
+pub const VMENTRY_DEACTIVATE_DUAL_MONITOR: u32     = (1 << 11);
+pub const VMENTRY_LOAD_IA32_PERF_GLOBAL_CTRL: u32  = (1 << 13);
+pub const VMENTRY_LOAD_IA32_PAT: u32               = (1 << 14);
+pub const VMENTRY_LOAD_EFER: u32                   = (1 << 15);
+
+pub const IRQ_INFO_EXT_IRQ: u32         = (0 << 8);
+pub const IRQ_INFO_NMI: u32             = (2 << 8);
+pub const IRQ_INFO_HARD_EXC: u32        = (3 << 8);
+pub const IRQ_INFO_SOFT_IRQ: u32        = (4 << 8);
+pub const IRQ_INFO_PRIV_SOFT_EXC: u32   = (5 << 8);
+pub const IRQ_INFO_SOFT_EXC: u32        = (6 << 8);
+pub const IRQ_INFO_ERROR_VALID: u32     = (1 << 11);
+pub const IRQ_INFO_VALID: u32           = (1 << 31);
+
 #[derive(Copy, Clone)]
 #[repr(u32)]
 #[derive(Debug)]
@@ -444,19 +410,15 @@ pub enum hv_vmx_exit_reason {
     VMX_REASON_XSAVES                   = 63,
     VMX_REASON_XRSTORS                  = 64
 }
-#[derive(Copy, Clone)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum hv_vmx_irq_info {
-    IRQ_INFO_EXT_IRQ                    = (0 << 8),
-    IRQ_INFO_NMI                        = (2 << 8),
-    IRQ_INFO_HARD_EXC                   = (3 << 8),
-    IRQ_INFO_SOFT_IRQ                   = (4 << 8),
-    IRQ_INFO_PRIV_SOFT_EXC              = (5 << 8),
-    IRQ_INFO_SOFT_EXC                   = (6 << 8),
 
-    IRQ_INFO_ERROR_VALID                = (1 << 11),
-    IRQ_INFO_VALID                      = (1 << 31)
+impl hv_vmx_exit_reason {
+    pub fn from_u32(n: u32) -> Option<hv_vmx_exit_reason> {
+        if n <= 64 {
+            Some(unsafe { mem::transmute(n) })
+        } else {
+            None
+        }
+    }
 }
 
 //
