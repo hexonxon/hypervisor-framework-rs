@@ -411,6 +411,9 @@ pub enum hv_vmx_exit_reason {
     VMX_REASON_XRSTORS                  = 64
 }
 
+/**
+ * Convert u32 to a valid exit reason
+ */
 impl hv_vmx_exit_reason {
     pub fn from_u32(n: u32) -> Option<hv_vmx_exit_reason> {
         if n <= 64 {

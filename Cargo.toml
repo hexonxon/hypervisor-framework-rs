@@ -1,5 +1,5 @@
 [package]
-name = "Hypervisor_framework"
+name = "hypervisor_framework"
 version = "0.1.0"
 authors = ["Evgeny Yakovlev <insoreiges@gmail.com>"]
 
